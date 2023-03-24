@@ -180,7 +180,7 @@ class Client(Methods):
     """
 
     APP_VERSION = f"Pyrogram {__version__}"
-    DEVICE_MODEL = "IGNpremBot"
+    DEVICE_MODEL = "IGNubot"
     SYSTEM_VERSION = f"{platform.system()} {platform.release()}"
 
     LANG_CODE = "en"
@@ -510,10 +510,18 @@ class Client(Methods):
                 peer_id = -peer.id
                 access_hash = 0
                 peer_type = "group"
-            elif isinstance(peer, (raw.types.Channel, raw.types.ChannelForbidden)):
+            elif isinstance(peer, raw.types.Channel):
                 peer_id = utils.get_channel_id(peer.id)
                 access_hash = peer.access_hash
-                username = (getattr(peer, "username", None) or "").lower() or None
+                username = (
+                    peer.username.lower() if peer.username
+                    else peer.usernames[0].username.lower() if peer.usernames
+                    else None
+                )
+                peer_type = "channel" if peer.broadcast else "supergroup"
+            elif isinstance(peer, raw.types.ChannelForbidden):
+                peer_id = utils.get_channel_id(peer.id)
+                access_hash = peer.access_hash
                 peer_type = "channel" if peer.broadcast else "supergroup"
             else:
                 continue
